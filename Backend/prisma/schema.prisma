@@ -1,0 +1,58 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  user
+  admin
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  name     String @db.VarChar(100)
+  email    String @unique @db.VarChar(100)
+  phone    String @unique @db.VarChar(20)
+  password String
+  role     Role   @default(user)
+  prompts  Prompt[]
+}
+
+model Category {
+  id            Int           @id @default(autoincrement())
+  name          String        @db.VarChar(100)
+  subCategories SubCategory[]
+  prompts       Prompt[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model SubCategory {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(100)
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+  prompts    Prompt[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([name, categoryId], name: "unique_subcategory_name_per_category")
+}
+
+model Prompt {
+  id            Int         @id @default(autoincrement())
+  user          User        @relation(fields: [userId], references: [id])
+  userId        Int
+  category      Category    @relation(fields: [categoryId], references: [id])
+  categoryId    Int
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
+  subCategoryId Int
+  prompt        String      @db.Text
+  response      String      @db.Text
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
