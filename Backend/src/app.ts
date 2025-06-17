@@ -16,6 +16,7 @@ import categoryRoutes from './modules/categories/category.routes';
 import subCategoryRoutes from './modules/sub_categories/sub_category.routes';
 import promptRoutes from './modules/prompts/prompt.routes';
 import adminRoutes from './modules/admin/admin.routes';
+import usersRoutes from './modules/users/user.routes'; // <-- Make sure this path is correct
 
 const app = express();
 
@@ -33,6 +34,16 @@ const swaggerSpec = swaggerJsdoc({
   definition: {
     openapi: '3.0.0',
     info: { title: 'AI Learning Platform API', version: '1.0.0' },
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [{ bearerAuth: [] }],
   },
   apis: ['./src/modules/**/*.ts'], // Path to your route files with JSDoc comments
 });
@@ -53,6 +64,9 @@ app.use('/api/prompts', promptRoutes);
 
 // --- Admin Routes ---
 app.use('/api/admin', adminRoutes);
+
+// --- Users Routes ---
+app.use('/api/users', usersRoutes);
 
 // --- Global Error Handler ---
 app.use(errorHandler);

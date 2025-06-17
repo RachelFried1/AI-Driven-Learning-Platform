@@ -23,8 +23,9 @@ export async function register(req: Request, res: Response): Promise<void> {
     });
     return;
   } catch (err: any) {
+    // Handle unique constraint error for email or phone
     if (err.code === 'P2002') {
-      res.status(409).json({ message: 'Email or phone already registered.' });
+      res.status(409).json({ message: 'User with this email or phone already exists.' });
       return;
     }
     res.status(500).json({ message: 'Registration failed.' });
@@ -40,7 +41,7 @@ export async function login(req: Request, res: Response): Promise<void> {
   }
   const user = await authService.validateUser(email, password);
   if (!user) {
-    res.status(401).json({ message: 'Invalid credentials.' });
+    res.status(401).json({ message: 'Invalid email or password.' });
     return;
   }
   const token = authService.generateJWT(user);

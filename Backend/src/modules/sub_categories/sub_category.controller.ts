@@ -12,7 +12,12 @@ export async function createSubCategory(req: Request, res: Response): Promise<vo
     res.status(201).json(subCategory);
     return;
   } catch (err: any) {
-    if (err.message.includes('already exists')) {
+    if (err.code === 'P2003') {
+      // Prisma foreign key constraint failed
+      res.status(400).json({ message: 'Category does not exist.' });
+      return;
+    }
+    if (err.message && err.message.includes('already exists')) {
       res.status(409).json({ message: err.message });
       return;
     }

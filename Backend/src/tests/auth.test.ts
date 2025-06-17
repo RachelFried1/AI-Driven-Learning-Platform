@@ -25,14 +25,16 @@ describe('Auth Routes', () => {
   });
 
   it('should not register an existing user', async () => {
-    await prisma.user.create({
-      data: {
+    // Register first user
+    await request(app)
+      .post('/api/auth/register')
+      .send({
         name: 'Test User',
         email: 'test@example.com',
         phone: '1234567890',
-        password: 'hashedpassword',
-      }
-    });
+        password: 'password123'
+      });
+    // Attempt to register again with the same email/phone
     const res = await request(app)
       .post('/api/auth/register')
       .send({
@@ -42,6 +44,7 @@ describe('Auth Routes', () => {
         password: 'password123'
       });
     expect(res.status).toBe(409);
+    expect(res.body.message).toMatch(/already exists|registered/i);
   });
 
   it('should log in with correct credentials and receive JWT', async () => {

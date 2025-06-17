@@ -1,6 +1,7 @@
 import request from 'supertest';
 import app from '../app';
 import prisma from '../shared/config/prisma';
+import bcrypt from 'bcryptjs';
 import { Role } from '@prisma/client';
 
 let userToken: string;
@@ -26,13 +27,14 @@ beforeEach(async () => {
     });
   userToken = userLogin.body.token;
 
-  // Create admin user directly in DB
+  // Create admin user directly in DB with hashed password
+  const hashedPassword = await bcrypt.hash('adminpass', 10);
   await prisma.user.create({
     data: {
       name: 'Admin User',
       email: 'admin@example.com',
       phone: '1234567895',
-      password: 'hashedpassword',
+      password: hashedPassword,
       role: Role.admin,
     }
   });
@@ -40,7 +42,7 @@ beforeEach(async () => {
     .post('/api/auth/login')
     .send({
       email: 'admin@example.com',
-      password: 'hashedpassword' // If you hash in register, use the same here
+      password: 'adminpass'
     });
   adminToken = adminLogin.body.token;
 });
