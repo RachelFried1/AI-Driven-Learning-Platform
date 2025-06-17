@@ -57,20 +57,63 @@ router.get(
 
 /**
  * @openapi
- * /api/prompts/admin:
+ * /api/prompts/all:
  *   get:
- *     summary: List all prompts (admin only)
+ *     summary: List all prompts with pagination and filtering (admin only)
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Items per page
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: integer
+ *         description: Filter by user ID
+ *       - in: query
+ *         name: categoryId
+ *         schema:
+ *           type: integer
+ *         description: Filter by category ID
+ *       - in: query
+ *         name: subCategoryId
+ *         schema:
+ *           type: integer
+ *         description: Filter by subcategory ID
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search in prompt or response
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Filter by creation date (start)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Filter by creation date (end)
  *     responses:
  *       200:
- *         description: List of all prompts
+ *         description: Paginated list of prompts
  */
 router.get(
-  '/admin',
+  '/all',
   requireAuth,
   requireRole(Role.admin),
-  asyncHandler(promptController.listAllPrompts)
+  ...promptController.getAllPrompts // Spread if getAllPrompts is an array of middleware/handlers
 );
 
 export default router;

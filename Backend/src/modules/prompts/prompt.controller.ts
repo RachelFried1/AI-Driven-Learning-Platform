@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import * as promptService from './prompt.service';
 import { AuthRequest } from '../../shared/middlewares/auth';
 import prisma from '../../shared/config/prisma';
@@ -47,8 +47,72 @@ export async function getUserPrompts(req: AuthRequest, res: Response): Promise<v
   res.json(prompts);
 }
 
-// (Optional) Admin: List all prompts (if needed for admin dashboard)
-export async function listAllPrompts(req: AuthRequest, res: Response): Promise<void> {
-  const prompts = await promptService.listAllPrompts();
-  res.json(prompts);
-}
+// Admin-only: List all prompts with pagination and filtering
+export const getAllPrompts = [
+  // Middleware should be added in the route file, not here
+  async (req: Request, res: Response) => {
+    try {
+      // Pagination
+      const page = Math.max(Number(req.query.page) || 1, 1);
+      const limit = Math.max(Number(req.query.limit) || 10, 1);
+      const skip = (page - 1) * limit;
+
+      // Filters
+      const {
+        userId,
+        categoryId,
+        subCategoryId,
+        search,
+        startDate,
+        endDate,
+      } = req.query;
+
+      // Build where clause dynamically
+      const where: any = {};
+
+      if (userId) where.userId = Number(userId);
+      if (categoryId) where.categoryId = Number(categoryId);
+      if (subCategoryId) where.subCategoryId = Number(subCategoryId);
+
+      if (search) {
+        where.OR = [
+          { prompt: { contains: String(search), mode: 'insensitive' } },
+          { response: { contains: String(search), mode: 'insensitive' } },
+        ];
+      }
+
+      if (startDate || endDate) {
+        where.createdAt = {};
+        if (startDate) where.createdAt.gte = new Date(String(startDate));
+        if (endDate) where.createdAt.lte = new Date(String(endDate));
+      }
+
+      // Get total count for pagination
+      const totalItems = await prisma.prompt.count({ where });
+
+      // Fetch paginated prompts
+      const data = await prisma.prompt.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: true,
+          category: true,
+          subCategory: true,
+        },
+      });
+
+      const totalPages = Math.ceil(totalItems / limit);
+
+      res.json({
+        data,
+        page,
+        totalItems,
+        totalPages,
+      });
+    } catch (err: any) {
+      res.status(400).json({ message: 'Invalid query or database error.', error: err.message });
+    }
+  },
+];
