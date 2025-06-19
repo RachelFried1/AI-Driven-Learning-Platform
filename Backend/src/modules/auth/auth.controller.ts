@@ -14,18 +14,24 @@ export async function register(req: Request, res: Response): Promise<void> {
   }
   try {
     const user = await authService.registerUser(name, email, phone, password);
+    const token = authService.generateJWT(user);
+    const refreshToken = authService.generateRefreshToken(user);
+
     res.status(201).json({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      role: user.role,
+      token,
+      refreshToken,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      }
     });
     return;
   } catch (err: any) {
-    // Handle unique constraint error for email or phone
     if (err.code === 'P2002') {
-      res.status(409).json({ message: 'User with this email or phone already exists.' });
+      res.status(409).json({ message: 'Email or phone already registered.' });
       return;
     }
     res.status(500).json({ message: 'Registration failed.' });

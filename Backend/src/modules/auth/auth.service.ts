@@ -16,7 +16,7 @@ export async function registerUser(
       email,
       phone,
       password: hashedPassword,
-      role: Role.user, // Use the Role enum
+      role: Role.user,
     },
   });
 }
@@ -33,5 +33,13 @@ export function generateJWT(user: User): string {
     { userId: user.id, role: user.role },
     process.env.JWT_SECRET as string,
     { expiresIn: '7d' }
+  );
+}
+
+export function generateRefreshToken(user: User): string {
+  return jwt.sign(
+    { userId: user.id, role: user.role },
+    process.env.JWT_REFRESH_SECRET as string,
+    { expiresIn: '30d' }
   );
 }

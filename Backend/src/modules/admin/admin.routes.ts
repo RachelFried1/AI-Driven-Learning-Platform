@@ -17,12 +17,7 @@ const router = Router();
  *       200:
  *         description: List of users
  */
-router.get(
-  '/users',
-  requireAuth,
-  requireRole(Role.admin),
-  asyncHandler(adminController.listAllUsers)
-);
+router.get('/users', requireAuth, requireRole(Role.admin), asyncHandler(adminController.listAllUsers));
 
 /**
  * @openapi
