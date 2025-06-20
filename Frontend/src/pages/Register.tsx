@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import RegisterForm from '../components/Auth/RegisterForm';
@@ -21,7 +20,7 @@ const Register: React.FC = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <RegisterForm />
-          
+
           <div className="mt-6">
             <div className="text-center">
               <Link to="/" className="text-sm text-gray-600 hover:text-blue-600">

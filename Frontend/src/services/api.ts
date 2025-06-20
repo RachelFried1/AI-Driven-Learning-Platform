@@ -12,7 +12,7 @@ const api = axios.create({
 
 // Add token to requests if available
 api.interceptors.request.use((config) => {
-  const token = authService.getToken(); // Use authService for token management
+  const token = authService.getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -23,9 +23,15 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      authService.logout(); // Use authService for logout logic
-     window.location.href = '/login';
+    const originalRequest = error.config;
+    // Do NOT redirect if the request is for login or register
+    if (
+      error.response?.status === 401 &&
+      !originalRequest.url.includes('/auth/login') &&
+      !originalRequest.url.includes('/auth/register')
+    ) {
+      authService.logout();
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

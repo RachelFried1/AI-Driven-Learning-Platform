@@ -1,51 +1,84 @@
-
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronUp, Clock, BookOpen } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import { promptService } from '../../services/prompt';
-import { PromptHistory } from '../../types';
+import { Category, Subcategory, PromptHistory } from '../../types';
 import { toast } from '@/hooks/use-toast';
+import HistoryFilters from './HistoryFilters';
+import HistoryItemsList from './HistoryItemsList';
+import { useAppSelector, useAppDispatch } from '@/app/hooks';
+import { setFilterField, FilterKey } from '@/features/filters/filtersSlice';
+
+const filterKey: FilterKey = 'user';
 
 const HistoryList: React.FC = () => {
   const [history, setHistory] = useState<PromptHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
+  // Pagination and filter state
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+
+  // Redux filter state
+  const dispatch = useAppDispatch();
+  const { searchTerm, categoryId, subCategoryId, date } = useAppSelector(
+    (state) => state.filters[filterKey]
+  );
+
   useEffect(() => {
-    loadHistory();
+    loadCategories();
   }, []);
 
-  const loadHistory = async () => {
+  useEffect(() => {
+    if (categoryId) {
+      promptService.getSubcategories(categoryId).then(setSubcategories);
+    } else {
+      setSubcategories([]);
+    }
+    dispatch(setFilterField({ key: filterKey, field: 'subCategoryId', value: '' }));
+    // eslint-disable-next-line
+  }, [categoryId]);
+
+  useEffect(() => {
+    loadHistory();
+    // eslint-disable-next-line
+  }, [page, limit, searchTerm, categoryId, subCategoryId, date]);
+
+  const loadCategories = async () => {
     try {
-      const data = await promptService.getUserHistory();
-      setHistory(data);
+      const data = await promptService.getCategories();
+      setCategories(data);
+    } catch {
+      setCategories([]);
+    }
+  };
+
+  const loadHistory = async () => {
+    setIsLoading(true);
+    try {
+      const res = await promptService.getUserPrompts({
+        page,
+        limit,
+        search: searchTerm,
+        categoryId,
+        subCategoryId,
+        date,
+      });
+      setHistory(res.items);
+      setTotalPages(res.totalPages);
+      setTotalItems(res.totalItems);
     } catch (error) {
-      console.error('Failed to load history:', error);
-      // Mock data for demo
-      const mockHistory: PromptHistory[] = [
-        {
-          id: '1',
-          prompt: 'Explain quadratic equations for high school students',
-          response: 'A quadratic equation is a polynomial equation of degree 2...',
-          category: 'Mathematics',
-          subcategory: 'Algebra',
-          createdAt: '2024-01-15T10:30:00Z',
-          userId: 'user1',
-        },
-        {
-          id: '2',
-          prompt: 'Teach me React components with examples',
-          response: 'React components are the building blocks of React applications...',
-          category: 'Programming',
-          subcategory: 'Web Development',
-          createdAt: '2024-01-14T15:45:00Z',
-          userId: 'user1',
-        },
-      ];
-      setHistory(mockHistory);
+      toast({ title: "Failed to load history", variant: "destructive" });
+      setHistory([]);
+      setTotalPages(1);
+      setTotalItems(0);
     } finally {
       setIsLoading(false);
     }
@@ -71,85 +104,90 @@ const HistoryList: React.FC = () => {
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  // Pagination controls
+  const handlePrev = () => setPage((p) => Math.max(1, p - 1));
+  const handleNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
-  if (history.length === 0) {
-    return (
-      <Card className="text-center py-12">
-        <CardContent>
-          <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No lessons yet</h3>
-          <p className="text-gray-600 mb-4">
-            Start your learning journey by creating your first AI lesson!
-          </p>
-          <Button onClick={() => window.location.href = '/lessons'}>
-            Create Your First Lesson
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, categoryId, subCategoryId, date]);
+
+  // Redux filter handlers
+  const handleSetSearchTerm = (v: string) =>
+    dispatch(setFilterField({ key: filterKey, field: 'searchTerm', value: v }));
+  const handleSetCategoryId = (v: string) =>
+    dispatch(setFilterField({ key: filterKey, field: 'categoryId', value: v }));
+  const handleSetSubCategoryId = (v: string) =>
+    dispatch(setFilterField({ key: filterKey, field: 'subCategoryId', value: v }));
+  const handleSetDate = (v: string) =>
+    dispatch(setFilterField({ key: filterKey, field: 'date', value: v }));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Filter Inputs */}
+      <HistoryFilters
+        searchTerm={searchTerm}
+        setSearchTerm={handleSetSearchTerm}
+        categoryId={categoryId}
+        setCategoryId={handleSetCategoryId}
+        subCategoryId={subCategoryId}
+        setSubCategoryId={handleSetSubCategoryId}
+        date={date}
+        setDate={handleSetDate}
+        categories={categories}
+        subcategories={subcategories}
+      />
+
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Your Learning History</h2>
         <Badge variant="secondary" className="text-sm">
-          {history.length} lesson{history.length !== 1 ? 's' : ''}
+          {totalItems} lesson{totalItems !== 1 ? 's' : ''}
         </Badge>
       </div>
 
-      {history.map((item) => (
-        <Card key={item.id} className="transition-shadow hover:shadow-md">
-          <Collapsible>
-            <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg mb-2 line-clamp-2">
-                      {item.prompt}
-                    </CardTitle>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 mr-1" />
-                        {formatDate(item.createdAt)}
-                      </div>
-                      <Badge variant="outline">{item.category}</Badge>
-                      <Badge variant="outline">{item.subcategory}</Badge>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm">
-                    {expandedItems.has(item.id) ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </CardHeader>
-            </CollapsibleTrigger>
-
-            <CollapsibleContent>
-              <CardContent className="pt-0">
-                <div className="border-t pt-4">
-                  <h4 className="font-semibold mb-3 text-gray-900">AI Response:</h4>
-                  <div className="prose prose-sm max-w-none">
-                    <p className="whitespace-pre-wrap text-gray-700">
-                      {item.response}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </CollapsibleContent>
-          </Collapsible>
+      {isLoading ? (
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      ) : history.length === 0 ? (
+        <Card className="text-center py-12">
+          <CardContent>
+            <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No lessons yet</h3>
+            <p className="text-gray-600 mb-4">
+              Start your learning journey by creating your first AI lesson!
+            </p>
+            <Button onClick={() => window.location.href = '/lessons'}>
+              Create Your First Lesson
+            </Button>
+          </CardContent>
         </Card>
-      ))}
+      ) : (
+        <>
+          <HistoryItemsList
+            history={history}
+            expandedItems={expandedItems}
+            toggleExpanded={toggleExpanded}
+            formatDate={formatDate}
+          />
+
+          {/* Pagination Controls */}
+          <div className="flex justify-between items-center mt-4">
+            <span className="text-sm text-gray-600">
+              Page {page} of {totalPages} | Total: {totalItems}
+            </span>
+            <div className="space-x-2">
+              <Button variant="outline" size="sm" onClick={handlePrev} disabled={page === 1}>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleNext} disabled={page === totalPages}>
+                Next
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

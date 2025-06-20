@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Clock, User, ArrowLeft } from 'lucide-react';
 import PromptForm from '../components/PromptSubmission/PromptForm';
-import ChatBotWidget from '../components/ChatBot/ChatBotWidget';
 import { PromptHistory } from '../types';
 
 const Lessons: React.FC = () => {
@@ -106,8 +105,8 @@ const Lessons: React.FC = () => {
                   <Clock className="h-4 w-4 mr-1" />
                   {formatDate(currentLesson.createdAt)}
                 </div>
-                <Badge variant="outline">{currentLesson.category}</Badge>
-                <Badge variant="secondary">{currentLesson.subcategory}</Badge>
+                <Badge variant="outline">{currentLesson.category?.name}</Badge>
+                <Badge variant="secondary">{currentLesson.subcategory?.name}</Badge>
               </div>
             </div>
 
@@ -150,9 +149,6 @@ const Lessons: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Floating Chatbot Widget */}
-      <ChatBotWidget onPromptGenerated={handlePromptGenerated} />
     </div>
   );
 };

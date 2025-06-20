@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 import * as authController from './auth.controller';
-import { validateRegisterInput } from '../../shared/middlewares/validateInput';
+import { validateLoginInput, validateRegisterInput } from '../../shared/middlewares/validateInput';
 
 const router = Router();
 
@@ -51,6 +51,6 @@ router.post('/register', validateRegisterInput, asyncHandler(authController.regi
  *       200:
  *         description: JWT token and user info
  */
-router.post('/login', asyncHandler(authController.login));
+router.post('/login',validateLoginInput, asyncHandler(authController.login));
 
 export default router;

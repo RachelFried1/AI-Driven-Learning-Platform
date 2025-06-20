@@ -35,7 +35,6 @@ const PromptForm: React.FC<PromptFormProps> = ({ onLessonGenerated, initialPromp
 
   useEffect(() => {
     if (selectedCategory) {
-      // Convert selectedCategory to number for backend compatibility
       loadSubcategories(selectedCategory);
     }
   }, [selectedCategory]);
@@ -46,47 +45,17 @@ const PromptForm: React.FC<PromptFormProps> = ({ onLessonGenerated, initialPromp
       setCategories(data);
     } catch (error) {
       console.error('Failed to load categories:', error);
-      // Mock data for demo
-      setCategories([
-        { id: '1', name: 'Mathematics', description: 'Algebra, Geometry, Calculus' },
-        { id: '2', name: 'Science', description: 'Physics, Chemistry, Biology' },
-        { id: '3', name: 'Programming', description: 'Web Dev, Mobile Dev, Data Science' },
-        { id: '4', name: 'Language Arts', description: 'Writing, Literature, Grammar' },
-      ]);
+      setCategories([]); // No mock data, just empty
     }
   };
 
   const loadSubcategories = async (categoryId: string) => {
     try {
-      // Convert categoryId to number for backend if needed
-      const data = await promptService.getSubcategories(Number(categoryId));
+      const data = await promptService.getSubcategories(categoryId);
       setSubcategories(data);
     } catch (error) {
       console.error('Failed to load subcategories:', error);
-      // Mock data for demo
-      const mockSubcategories: { [key: string]: Subcategory[] } = {
-        '1': [
-          { id: '1-1', categoryId: '1', name: 'Algebra', description: 'Linear equations, polynomials' },
-          { id: '1-2', categoryId: '1', name: 'Geometry', description: 'Shapes, angles, proofs' },
-          { id: '1-3', categoryId: '1', name: 'Calculus', description: 'Derivatives, integrals' },
-        ],
-        '2': [
-          { id: '2-1', categoryId: '2', name: 'Physics', description: 'Mechanics, thermodynamics' },
-          { id: '2-2', categoryId: '2', name: 'Chemistry', description: 'Organic, inorganic chemistry' },
-          { id: '2-3', categoryId: '2', name: 'Biology', description: 'Cell biology, genetics' },
-        ],
-        '3': [
-          { id: '3-1', categoryId: '3', name: 'Web Development', description: 'HTML, CSS, JavaScript' },
-          { id: '3-2', categoryId: '3', name: 'Mobile Development', description: 'iOS, Android apps' },
-          { id: '3-3', categoryId: '3', name: 'Data Science', description: 'Python, machine learning' },
-        ],
-        '4': [
-          { id: '4-1', categoryId: '4', name: 'Creative Writing', description: 'Fiction, poetry, essays' },
-          { id: '4-2', categoryId: '4', name: 'Literature', description: 'Analysis, interpretation' },
-          { id: '4-3', categoryId: '4', name: 'Grammar', description: 'Rules, punctuation, style' },
-        ],
-      };
-      setSubcategories(mockSubcategories[categoryId] || []);
+      setSubcategories([]); // No mock data, just empty
     }
   };
 
@@ -130,26 +99,13 @@ const PromptForm: React.FC<PromptFormProps> = ({ onLessonGenerated, initialPromp
         description: "Your AI lesson is ready",
       });
 
-      // Reset form
       setPrompt('');
     } catch (error) {
       console.error('Failed to submit prompt:', error);
-      // For demo, generate a mock response
-      const mockResponse = {
-        id: Date.now().toString(),
-        prompt: prompt,
-        response: `This is a comprehensive lesson about ${getSubcategoryName()} in ${getCategoryName()}.\n\n**Introduction:**\nWelcome to this lesson! Today we'll explore the fascinating world of ${getSubcategoryName()}.\n\n**Main Content:**\nLet's start with the fundamentals...\n\n**Key Points:**\n- Important concept 1\n- Important concept 2\n- Important concept 3\n\n**Summary:**\nIn this lesson, we covered the essential aspects of ${getSubcategoryName()}. Remember to practice these concepts regularly!\n\n**Next Steps:**\nContinue your learning journey with related topics in ${getCategoryName()}.`,
-        category: getCategoryName(),
-        subcategory: getSubcategoryName(),
-        createdAt: new Date().toISOString(),
-      };
-
-      onLessonGenerated(mockResponse);
-      setPrompt('');
-
       toast({
-        title: "Lesson generated!",
-        description: "Your AI lesson is ready (demo mode)",
+        title: "Failed to generate lesson",
+        description: "Please try again later.",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);

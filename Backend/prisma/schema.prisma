@@ -19,6 +19,7 @@ model User {
   phone    String @unique @db.VarChar(20)
   password String
   role     Role   @default(user)
+  createdAt DateTime @default(now())
   prompts  Prompt[]
 }
 

@@ -1,31 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Users, BookOpen, MessageSquare, Search } from 'lucide-react';
 import { promptService } from '../../services/prompt';
+import { userService } from '../../services/user';
 import { PromptHistory, Category, Subcategory } from '../../types';
 import { toast } from '@/hooks/use-toast';
+import DashboardFilters from './DashboardFilters';
+import UserTable from './UserTable';
+import PromptTable from './PromptTable';
+import PromptDetailsModal from './PromptDetailsModal';
+import { Button } from '@/components/ui/button';
+import { useAppSelector, useAppDispatch } from '@/app/hooks';
+import { setFilterField, FilterKey } from '@/features/filters/filtersSlice';
+
+const filterKey: FilterKey = 'admin';
 
 const Dashboard: React.FC = () => {
   // Filters and pagination state
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [subCategoryId, setSubCategoryId] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [showUsers, setShowUsers] = useState(false);
 
-  // Data state
+  // Data state for prompts
   const [items, setItems] = useState<PromptHistory[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Data state for users
+  const [users, setUsers] = useState<any[]>([]);
+  const [userSearch, setUserSearch] = useState('');
+  const [userPage, setUserPage] = useState(1);
+  const [userTotalPages, setUserTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+
+  // Modal state for prompt details
+  const [selectedPrompt, setSelectedPrompt] = useState<PromptHistory | null>(null);
+  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
+
+  // Redux filter state
+  const dispatch = useAppDispatch();
+  const { searchTerm, categoryId, subCategoryId, date } = useAppSelector(
+    (state) => state.filters[filterKey]
+  );
 
   // Load categories for filter dropdown
   useEffect(() => {
@@ -47,11 +65,13 @@ const Dashboard: React.FC = () => {
     } else {
       setSubcategories([]);
     }
-    setSubCategoryId('');
+    dispatch(setFilterField({ key: filterKey, field: 'subCategoryId', value: '' }));
+    // eslint-disable-next-line
   }, [categoryId]);
 
   // Fetch prompt data with filters and pagination
   useEffect(() => {
+    if (showUsers) return;
     const fetchData = async () => {
       setIsLoading(true);
       try {
@@ -61,8 +81,8 @@ const Dashboard: React.FC = () => {
           search: searchTerm,
           categoryId,
           subCategoryId,
-          startDate,
-          endDate,
+          startDate: date || undefined,
+          endDate: date || undefined,
         });
         setItems(res.items);
         setTotalPages(res.totalPages);
@@ -77,7 +97,33 @@ const Dashboard: React.FC = () => {
       }
     };
     fetchData();
-  }, [page, limit, searchTerm, categoryId, subCategoryId, startDate, endDate]);
+  }, [page, limit, searchTerm, categoryId, subCategoryId, date, showUsers]);
+
+  // Fetch all users with filtering and pagination
+  useEffect(() => {
+    if (!showUsers) return;
+    const fetchUsers = async () => {
+      setIsLoadingUsers(true);
+      try {
+        const res = await userService.getAllUsers({
+          search: userSearch,
+          page: userPage,
+          limit,
+        });
+        setUsers(res.items);
+        setTotalUsers(res.total);
+        setUserTotalPages(res.totalPages);
+      } catch {
+        setUsers([]);
+        setTotalUsers(0);
+        setUserTotalPages(1);
+        toast({ title: "Failed to load users", variant: "destructive" });
+      } finally {
+        setIsLoadingUsers(false);
+      }
+    };
+    fetchUsers();
+  }, [showUsers, userSearch, userPage, limit]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -92,164 +138,108 @@ const Dashboard: React.FC = () => {
   // Pagination controls
   const handlePrev = () => setPage((p) => Math.max(1, p - 1));
   const handleNext = () => setPage((p) => Math.min(totalPages, p + 1));
+  const handleUserPrev = () => setUserPage((p) => Math.max(1, p - 1));
+  const handleUserNext = () => setUserPage((p) => Math.min(userTotalPages, p + 1));
 
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [searchTerm, categoryId, subCategoryId, startDate, endDate]);
+  }, [searchTerm, categoryId, subCategoryId, date, showUsers]);
+
+  useEffect(() => {
+    setUserPage(1);
+  }, [userSearch, showUsers]);
+
+  // Handler for viewing a prompt (open modal)
+  const handleViewPrompt = (item: PromptHistory) => {
+    setSelectedPrompt(item);
+    setIsPromptModalOpen(true);
+  };
+
+  const handleClosePromptModal = () => {
+    setIsPromptModalOpen(false);
+    setSelectedPrompt(null);
+  };
+
+  // Redux filter handlers
+  const handleSetSearchTerm = (v: string) =>
+    dispatch(setFilterField({ key: filterKey, field: 'searchTerm', value: v }));
+  const handleSetCategoryId = (v: string) =>
+    dispatch(setFilterField({ key: filterKey, field: 'categoryId', value: v }));
+  const handleSetSubCategoryId = (v: string) =>
+    dispatch(setFilterField({ key: filterKey, field: 'subCategoryId', value: v }));
+  const handleSetDate = (v: string) =>
+    dispatch(setFilterField({ key: filterKey, field: 'date', value: v }));
 
   return (
     <div className="space-y-6">
-      {/* Filter Inputs */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4 items-end">
-            <div>
-              <label className="block text-xs mb-1">Search</label>
-              <Input
-                placeholder="Search by user, prompt, or category..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-xs"
-              />
-            </div>
-            <div>
-              <label className="block text-xs mb-1">Category</label>
-              <select
-                value={categoryId}
-                onChange={e => setCategoryId(e.target.value)}
-                className="border rounded px-2 py-1"
-              >
-                <option value="">All</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs mb-1">Subcategory</label>
-              <select
-                value={subCategoryId}
-                onChange={e => setSubCategoryId(e.target.value)}
-                className="border rounded px-2 py-1"
-                disabled={!categoryId}
-              >
-                <option value="">All</option>
-                {subcategories.map(sub => (
-                  <option key={sub.id} value={sub.id}>{sub.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs mb-1">Start Date</label>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={e => setStartDate(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-xs mb-1">End Date</label>
-              <Input
-                type="date"
-                value={endDate}
-                onChange={e => setEndDate(e.target.value)}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex gap-4">
+        <Button
+          variant={!showUsers ? "default" : "outline"}
+          onClick={() => setShowUsers(false)}
+        >
+          Prompt History
+        </Button>
+        <Button
+          variant={showUsers ? "default" : "outline"}
+          onClick={() => setShowUsers(true)}
+        >
+          List All Users
+        </Button>
+      </div>
 
-      {/* Table and Pagination */}
-      <Card>
-        <CardHeader>
-          <CardTitle>User Activity</CardTitle>
-          <CardDescription>
-            All user prompts and AI-generated lessons
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center items-center min-h-[200px]">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Prompt</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Subcategory</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">
-                        {item.userName || 'Unknown User'}
-                      </TableCell>
-                      <TableCell className="max-w-md">
-                        <div className="truncate" title={item.prompt}>
-                          {item.prompt}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{item.category}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{item.subcategory}</Badge>
-                      </TableCell>
-                      <TableCell className="text-sm text-gray-600">
-                        {formatDate(item.createdAt)}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            toast({
-                              title: "Lesson Details",
-                              description: "Feature coming soon",
-                            });
-                          }}
-                        >
-                          View
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {items.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  No results found.
-                </div>
-              )}
-              {/* Pagination Controls */}
-              <div className="flex justify-between items-center mt-4">
-                <span className="text-sm text-gray-600">
-                  Page {page} of {totalPages} | Total: {totalItems}
-                </span>
-                <div className="space-x-2">
-                  <Button variant="outline" size="sm" onClick={handlePrev} disabled={page === 1}>
-                    Previous
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleNext} disabled={page === totalPages}>
-                    Next
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+      {!showUsers && (
+        <>
+          {/* Filter Inputs */}
+          <DashboardFilters
+            searchTerm={searchTerm}
+            setSearchTerm={handleSetSearchTerm}
+            categoryId={categoryId}
+            setCategoryId={handleSetCategoryId}
+            subCategoryId={subCategoryId}
+            setSubCategoryId={handleSetSubCategoryId}
+            date={date}
+            setDate={handleSetDate}
+            categories={categories}
+            subcategories={subcategories}
+          />
+
+          {/* Prompt Table */}
+          <PromptTable
+            items={items}
+            isLoading={isLoading}
+            page={page}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            handlePrev={handlePrev}
+            handleNext={handleNext}
+            formatDate={formatDate}
+            onView={handleViewPrompt}
+          />
+
+          {/* Prompt Details Modal */}
+          <PromptDetailsModal
+            open={isPromptModalOpen}
+            onClose={handleClosePromptModal}
+            prompt={selectedPrompt}
+          />
+        </>
+      )}
+
+      {showUsers && (
+        <UserTable
+          users={users}
+          userSearch={userSearch}
+          setUserSearch={setUserSearch}
+          isLoadingUsers={isLoadingUsers}
+          userPage={userPage}
+          userTotalPages={userTotalPages}
+          totalUsers={totalUsers}
+          handleUserPrev={handleUserPrev}
+          handleUserNext={handleUserNext}
+          formatDate={formatDate}
+        />
+      )}
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -34,18 +33,24 @@ const Navbar: React.FC = () => {
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
               <>
-                <Link to="/lessons">
-                  <Button variant="ghost" className="text-gray-700 hover:text-blue-600">
-                    Lessons
-                  </Button>
-                </Link>
-                <Link to="/history">
-                  <Button variant="ghost" className="text-gray-700 hover:text-blue-600">
-                    <History className="h-4 w-4 mr-2" />
-                    History
-                  </Button>
-                </Link>
-                {user?.isAdmin && (
+                {/* Only show Lessons and History if NOT admin */}
+                {user?.role !== 'admin' && (
+                  <>
+                    <Link to="/lessons">
+                      <Button variant="ghost" className="text-gray-700 hover:text-blue-600">
+                        Lessons
+                      </Button>
+                    </Link>
+                    <Link to="/history">
+                      <Button variant="ghost" className="text-gray-700 hover:text-blue-600">
+                        <History className="h-4 w-4 mr-2" />
+                        History
+                      </Button>
+                    </Link>
+                  </>
+                )}
+                {/* Only show Admin if admin */}
+                {user?.role === 'admin' && (
                   <Link to="/admin">
                     <Button variant="ghost" className="text-gray-700 hover:text-blue-600">
                       <Settings className="h-4 w-4 mr-2" />

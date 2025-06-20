@@ -17,6 +17,10 @@ export const promptService = {
     return response.data;
   },
 
+  async getUserPrompts(params?: { page?: number; limit?: number; search?: string; categoryId?: string; subCategoryId?: string; date?: string }) {
+    const response = await api.get('/prompts/my', { params });
+    return response.data;
+  },
   async getUserHistory(): Promise<PromptHistory[]> {
     const response = await api.get('/prompts/user');
     return response.data;

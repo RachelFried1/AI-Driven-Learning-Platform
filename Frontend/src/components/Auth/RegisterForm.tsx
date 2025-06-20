@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -20,13 +19,31 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
     password: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [error, setError] = useState<string | null>(null);
+
   const { register } = useAuth();
   const navigate = useNavigate();
+
+  const validate = () => {
+    if (!formData.name || formData.name.length > 100) return "Name is required and must be less than 100 characters.";
+    if (!/^[a-zA-Z\s]+$/.test(formData.name)) return "Name can only contain letters and spaces.";
+    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) return "Invalid email address.";
+    if (!formData.phone || !/^\+\d{10,15}$/.test(formData.phone)) return "Phone must start with country code (e.g. +972) and contain 10-15 digits.";
+    if (!formData.password || formData.password.length < 6) return "Password must be at least 6 characters.";
+    return null;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
+
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       await register(formData);
@@ -35,8 +52,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
       } else {
         navigate('/lessons');
       }
-    } catch (error) {
-      // Error handling is done in the context
+    } catch (error: any) {
+      setError(error?.response?.data?.message || "Registration failed.");
     } finally {
       setIsSubmitting(false);
     }
@@ -57,6 +74,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-100 text-red-700 p-2 rounded text-sm mb-2">
+              {error}
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="name">Full Name</Label>
             <Input
@@ -69,7 +91,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
               placeholder="Enter your full name"
             />
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -82,7 +103,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
               placeholder="Enter your email"
             />
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
             <Input
@@ -91,10 +111,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
               type="tel"
               value={formData.phone}
               onChange={handleChange}
-              placeholder="Enter your phone number"
+              required
+              placeholder="Enter your phone number (e.g. +972501234567)"
             />
           </div>
-          
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
@@ -107,7 +127,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
               placeholder="Create a password"
             />
           </div>
-
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? 'Creating Account...' : 'Create Account'}
           </Button>

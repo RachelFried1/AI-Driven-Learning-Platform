@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -24,11 +23,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = f
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (adminOnly && !user?.isAdmin) {
+  if (adminOnly && user?.role !== 'admin') { // Changed from isAdmin to role === 'admin'
     return <Navigate to="/lessons" replace />;
   }
-
- 
 
   return <>{children}</>;
 };

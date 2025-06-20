@@ -1,10 +1,9 @@
-
 export interface User {
   id: string;
   name: string;
   email: string;
   phone?: string;
-  isAdmin: boolean;
+  role: 'admin' | 'user'; // Changed from isAdmin: boolean to role: 'admin' | 'user'
 }
 
 export interface AuthState {
@@ -51,15 +50,21 @@ export interface PromptSubmission {
   includeFollowUp?: boolean;
 }
 
+// Modified to allow category/subcategory to be string or object with name
 export interface PromptHistory {
   id: string;
   prompt: string;
   response: string;
-  category: string;
-  subcategory: string;
+  category: Category;
+  subcategory: Subcategory;
   createdAt: string;
   userId: string;
-  userName?: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: 'admin' | 'user';
+  };
 }
 
 export interface GuidanceQuestion {

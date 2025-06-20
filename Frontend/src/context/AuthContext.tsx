@@ -3,10 +3,13 @@ import { User, AuthState, LoginCredentials, RegisterData } from '../types';
 import { authService } from '../services/auth';
 import { toast } from '@/hooks/use-toast';
 import { isJwtExpired } from '@/lib/utils';
+import { userService } from '../services/user';
+
+
 interface AuthContextType extends AuthState {
   isAdmin: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<{ user: User }>;
+  register: (data: RegisterData) => Promise<{ user: User }>;
   logout: () => void;
 }
 
@@ -56,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const token = authService.getToken();
       if (token && !isJwtExpired(token)) {
         try {
-          const user = await authService.getCurrentUser();
+          const user = await userService.getCurrentUser();
           dispatch({ type: 'SET_USER', payload: { user, token } });
         } catch (error) {
           authService.logout();
@@ -71,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, []);
 
-  const login = async (credentials: LoginCredentials) => {
+  const login = async (credentials: LoginCredentials): Promise<{ user: User }> => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       const { user, token } = await authService.login(credentials);
@@ -80,6 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Welcome back!",
         description: `Hello ${user.name}`,
       });
+      return { user };
     } catch (error: any) {
       dispatch({ type: 'SET_LOADING', payload: false });
       toast({
@@ -91,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (data: RegisterData) => {
+  const register = async (data: RegisterData): Promise<{ user: User }> => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       const { user, token } = await authService.register(data);
@@ -100,6 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Account created!",
         description: `Welcome ${user.name}`,
       });
+      return { user };
     } catch (error: any) {
       dispatch({ type: 'SET_LOADING', payload: false });
       toast({
@@ -120,7 +125,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const isAdmin = !!state.user?.isAdmin;
+  // Changed from isAdmin to role === 'admin'
+  const isAdmin = state.user?.role === 'admin';
 
   return (
     <AuthContext.Provider value={{ ...state, isAdmin, login, register, logout }}>
