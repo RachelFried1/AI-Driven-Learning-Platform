@@ -1,86 +1,92 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import React, { useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { Category, Subcategory } from '../../types';
+import { useAppSelector, useAppDispatch } from '@/app/hooks';
+import { setFilterField, FilterKey } from '@/features/filters/filtersSlice';
+import { fetchCategories, fetchSubcategories } from '@/features/categories/categoriesSlice';
 
-interface DashboardFiltersProps {
-  searchTerm: string;
-  setSearchTerm: (v: string) => void;
-  categoryId: string;
-  setCategoryId: (v: string) => void;
-  subCategoryId: string;
-  setSubCategoryId: (v: string) => void;
-  date: string;
-  setDate: (v: string) => void;
-  categories: Category[];
-  subcategories: Subcategory[];
-}
+const filterKey: FilterKey = 'admin';
 
-const DashboardFilters: React.FC<DashboardFiltersProps> = ({
-  searchTerm,
-  setSearchTerm,
-  categoryId,
-  setCategoryId,
-  subCategoryId,
-  setSubCategoryId,
-  date,
-  setDate,
-  categories,
-  subcategories,
-}) => (
-  <Card>
-    <CardHeader>
-      <CardTitle>Filters</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <div className="flex flex-wrap gap-4 items-end">
-        <div>
-          <label className="block text-xs mb-1">Search</label>
-          <Input
-            placeholder="Search by user, prompt..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-xs"
-          />
-        </div>
-        <div>
-          <label className="block text-xs mb-1">Category</label>
-          <select
-            value={categoryId}
-            onChange={e => setCategoryId(e.target.value)}
-            className="border rounded px-2 py-1"
-          >
-            <option value="">All</option>
-            {categories.map(cat => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs mb-1">Subcategory</label>
-          <select
-            value={subCategoryId}
-            onChange={e => setSubCategoryId(e.target.value)}
-            className="border rounded px-2 py-1"
-            disabled={!categoryId}
-          >
-            <option value="">All</option>
-            {subcategories.map(sub => (
-              <option key={sub.id} value={sub.id}>{sub.name}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs mb-1">Date</label>
-          <Input
-            type="date"
-            value={date}
-            onChange={e => setDate(e.target.value)}
-          />
-        </div>
+const DashboardFilters: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const { searchTerm, categoryId, subCategoryId, date } = useAppSelector(
+    (state) => state.filters[filterKey]
+  );
+  const { categories, subcategories } = useAppSelector((state) => state.categories);
+
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (categoryId) {
+      dispatch(fetchSubcategories(categoryId));
+    }
+  }, [dispatch, categoryId]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setFilterField({ key: filterKey, field: 'searchTerm', value: e.target.value }));
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    dispatch(setFilterField({ key: filterKey, field: 'categoryId', value: e.target.value }));
+  };
+
+  const handleSubCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    dispatch(setFilterField({ key: filterKey, field: 'subCategoryId', value: e.target.value }));
+  };
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setFilterField({ key: filterKey, field: 'date', value: e.target.value }));
+  };
+
+  return (
+    <div className="flex flex-wrap gap-4 items-end mb-4">
+      <div>
+        <label className="block text-xs mb-1">Search</label>
+        <Input
+          placeholder="Search prompts..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          className="max-w-xs"
+        />
       </div>
-    </CardContent>
-  </Card>
-);
+      <div>
+        <label className="block text-xs mb-1">Category</label>
+        <select
+          value={categoryId}
+          onChange={handleCategoryChange}
+          className="border rounded px-2 py-1"
+        >
+          <option value="">All</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>{cat.name}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="block text-xs mb-1">Subcategory</label>
+        <select
+          value={subCategoryId}
+          onChange={handleSubCategoryChange}
+          className="border rounded px-2 py-1"
+        >
+          <option value="">All</option>
+          {(subcategories[categoryId] || []).map((sub) => (
+            <option key={sub.id} value={sub.id}>{sub.name}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="block text-xs mb-1">Date</label>
+        <Input
+          type="date"
+          value={date}
+          onChange={handleDateChange}
+          className="max-w-xs"
+        />
+      </div>
+    </div>
+  );
+};
 
 export default DashboardFilters;

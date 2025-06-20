@@ -56,7 +56,7 @@ export interface PromptHistory {
   prompt: string;
   response: string;
   category: Category;
-  subcategory: Subcategory;
+  subCategory: Subcategory;
   createdAt: string;
   userId: string;
   user: {

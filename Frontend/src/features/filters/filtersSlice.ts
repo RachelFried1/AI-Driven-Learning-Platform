@@ -10,6 +10,7 @@ interface FilterFields {
 interface FiltersState {
   admin: FilterFields;
   user: FilterFields;
+  history: FilterFields; // <-- Added for HistoryList
 }
 
 const initialFields: FilterFields = {
@@ -22,6 +23,7 @@ const initialFields: FilterFields = {
 const initialState: FiltersState = {
   admin: { ...initialFields },
   user: { ...initialFields },
+  history: { ...initialFields }, // <-- Added for HistoryList
 };
 
 type FilterKey = keyof FiltersState;

@@ -21,10 +21,28 @@ export const promptService = {
     const response = await api.get('/prompts/my', { params });
     return response.data;
   },
-  async getUserHistory(): Promise<PromptHistory[]> {
-    const response = await api.get('/prompts/user');
-    return response.data;
-  },
+  async getUserHistory(params: {
+  page: number;
+  limit: number;
+  search: string;
+  categoryId: string;
+  subCategoryId: string;
+  startDate?: string;
+  endDate?: string;
+}): Promise<any> {
+  const query = new URLSearchParams({
+    page: params.page.toString(),
+    limit: params.limit.toString(),
+    search: params.search,
+    categoryId: params.categoryId,
+    subCategoryId: params.subCategoryId,
+    ...(params.startDate ? { startDate: params.startDate } : {}),
+    ...(params.endDate ? { endDate: params.endDate } : {}),
+  }).toString();
+
+  const response = await api.get(`/prompts/my?${query}`);
+  return response.data;
+},
 
   // NEW: Get all prompts with filters and pagination
   async getAllPrompts(params: {

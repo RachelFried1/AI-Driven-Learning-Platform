@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Clock, User, ArrowLeft } from 'lucide-react';
-import PromptForm from '../components/PromptSubmission/PromptForm';
+import PromptForm from '../components/PromptSubmission/PromptForm/PromptForm';
 import { PromptHistory } from '../types';
 
 const Lessons: React.FC = () => {
@@ -106,7 +106,7 @@ const Lessons: React.FC = () => {
                   {formatDate(currentLesson.createdAt)}
                 </div>
                 <Badge variant="outline">{currentLesson.category?.name}</Badge>
-                <Badge variant="secondary">{currentLesson.subcategory?.name}</Badge>
+                <Badge variant="secondary">{currentLesson.subCategory?.name}</Badge>
               </div>
             </div>
 

@@ -1,88 +1,45 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BookOpen } from 'lucide-react';
-import { promptService } from '../../services/prompt';
-import { Category, Subcategory, PromptHistory } from '../../types';
-import { toast } from '@/hooks/use-toast';
 import HistoryFilters from './HistoryFilters';
 import HistoryItemsList from './HistoryItemsList';
+import PaginationControls from '../common/PaginationControls';
 import { useAppSelector, useAppDispatch } from '@/app/hooks';
-import { setFilterField, FilterKey } from '@/features/filters/filtersSlice';
-
-const filterKey: FilterKey = 'user';
+import { fetchHistory, setPage } from '@/features/history/historySlice';
 
 const HistoryList: React.FC = () => {
-  const [history, setHistory] = useState<PromptHistory[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    items: history,
+    isLoading,
+    page,
+    totalPages,
+    total,
+    limit,
+  } = useAppSelector((state) => state.history);
+
+  // ✅ Call selectors at the top level
+  const searchTerm = useAppSelector((state) => state.filters.history.searchTerm);
+  const categoryId = useAppSelector((state) => state.filters.history.categoryId);
+  const subCategoryId = useAppSelector((state) => state.filters.history.subCategoryId);
+  const date = useAppSelector((state) => state.filters.history.date);
+
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-
-  // Pagination and filter state
-  const [page, setPage] = useState(1);
-  const [limit] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
-
-  // Redux filter state
   const dispatch = useAppDispatch();
-  const { searchTerm, categoryId, subCategoryId, date } = useAppSelector(
-    (state) => state.filters[filterKey]
-  );
 
   useEffect(() => {
-    loadCategories();
-  }, []);
-
-  useEffect(() => {
-    if (categoryId) {
-      promptService.getSubcategories(categoryId).then(setSubcategories);
-    } else {
-      setSubcategories([]);
-    }
-    dispatch(setFilterField({ key: filterKey, field: 'subCategoryId', value: '' }));
-    // eslint-disable-next-line
-  }, [categoryId]);
-
-  useEffect(() => {
-    loadHistory();
-    // eslint-disable-next-line
-  }, [page, limit, searchTerm, categoryId, subCategoryId, date]);
-
-  const loadCategories = async () => {
-    try {
-      const data = await promptService.getCategories();
-      setCategories(data);
-    } catch {
-      setCategories([]);
-    }
-  };
-
-  const loadHistory = async () => {
-    setIsLoading(true);
-    try {
-      const res = await promptService.getUserPrompts({
+    dispatch(
+      fetchHistory({
         page,
         limit,
         search: searchTerm,
         categoryId,
         subCategoryId,
         date,
-      });
-      setHistory(res.items);
-      setTotalPages(res.totalPages);
-      setTotalItems(res.totalItems);
-    } catch (error) {
-      toast({ title: "Failed to load history", variant: "destructive" });
-      setHistory([]);
-      setTotalPages(1);
-      setTotalItems(0);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      })
+    );
+  }, [dispatch, page, limit, searchTerm, categoryId, subCategoryId, date]);
 
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedItems);
@@ -104,48 +61,26 @@ const HistoryList: React.FC = () => {
     });
   };
 
-  // Pagination controls
-  const handlePrev = () => setPage((p) => Math.max(1, p - 1));
-  const handleNext = () => setPage((p) => Math.min(totalPages, p + 1));
+  const handlePrev = () => {
+    if (page > 1) dispatch(setPage(page - 1));
+  };
+  const handleNext = () => {
+    if (page < totalPages) dispatch(setPage(page + 1));
+  };
 
-  // Reset page when filters change
   useEffect(() => {
-    setPage(1);
-  }, [searchTerm, categoryId, subCategoryId, date]);
-
-  // Redux filter handlers
-  const handleSetSearchTerm = (v: string) =>
-    dispatch(setFilterField({ key: filterKey, field: 'searchTerm', value: v }));
-  const handleSetCategoryId = (v: string) =>
-    dispatch(setFilterField({ key: filterKey, field: 'categoryId', value: v }));
-  const handleSetSubCategoryId = (v: string) =>
-    dispatch(setFilterField({ key: filterKey, field: 'subCategoryId', value: v }));
-  const handleSetDate = (v: string) =>
-    dispatch(setFilterField({ key: filterKey, field: 'date', value: v }));
+    dispatch(setPage(1));
+  }, [searchTerm, categoryId, subCategoryId, date, dispatch]);
 
   return (
     <div className="space-y-6">
-      {/* Filter Inputs */}
-      <HistoryFilters
-        searchTerm={searchTerm}
-        setSearchTerm={handleSetSearchTerm}
-        categoryId={categoryId}
-        setCategoryId={handleSetCategoryId}
-        subCategoryId={subCategoryId}
-        setSubCategoryId={handleSetSubCategoryId}
-        date={date}
-        setDate={handleSetDate}
-        categories={categories}
-        subcategories={subcategories}
-      />
-
+      <HistoryFilters />
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Your Learning History</h2>
         <Badge variant="secondary" className="text-sm">
-          {totalItems} lesson{totalItems !== 1 ? 's' : ''}
+          {total} lesson{total !== 1 ? 's' : ''}
         </Badge>
       </div>
-
       {isLoading ? (
         <div className="flex justify-center items-center min-h-[400px]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -171,21 +106,13 @@ const HistoryList: React.FC = () => {
             toggleExpanded={toggleExpanded}
             formatDate={formatDate}
           />
-
-          {/* Pagination Controls */}
-          <div className="flex justify-between items-center mt-4">
-            <span className="text-sm text-gray-600">
-              Page {page} of {totalPages} | Total: {totalItems}
-            </span>
-            <div className="space-x-2">
-              <Button variant="outline" size="sm" onClick={handlePrev} disabled={page === 1}>
-                Previous
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleNext} disabled={page === totalPages}>
-                Next
-              </Button>
-            </div>
-          </div>
+          <PaginationControls
+            page={page}
+            totalPages={totalPages}
+            totalItems={total}
+            onPrev={handlePrev}
+            onNext={handleNext}
+          />
         </>
       )}
     </div>

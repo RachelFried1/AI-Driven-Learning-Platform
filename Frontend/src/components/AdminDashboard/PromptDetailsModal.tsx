@@ -30,7 +30,7 @@ const PromptDetailsModal: React.FC<PromptDetailsModalProps> = ({ open, onClose, 
         </div>
         <div className="mb-2">
           <Badge variant="outline">{prompt.category?.name}</Badge>
-          <Badge variant="secondary" className="ml-2">{prompt.subcategory?.name}</Badge>
+          <Badge variant="secondary" className="ml-2">{prompt.subCategory?.name}</Badge>
         </div>
         <div className="mb-4">
           <strong>Lesson:</strong>
