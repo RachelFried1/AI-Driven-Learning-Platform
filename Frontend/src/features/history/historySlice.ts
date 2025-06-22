@@ -1,4 +1,3 @@
-// filepath: src/features/history/historySlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { promptService } from '../../services/prompt';
 import { PromptHistory } from '../../types';

@@ -1,109 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles, Send } from 'lucide-react';
-import { promptService } from '../../../services/prompt';
-import { PromptSubmission } from '../../../types';
-import { toast } from '@/hooks/use-toast';
 import PromptGuidanceBot from '../PromptGuidanceBot/PromptGuidanceBot';
 import AuthModal from '../../Auth/AuthModal';
-import { useAppDispatch, useAppSelector } from '@/app/hooks';
-import { fetchCategories, fetchSubcategories } from '@/features/categories/categoriesSlice';
 import CategorySelector from './CategorySelector';
 import SubcategorySelector from './SubcategorySelector';
 import PromptTextarea from './PromptTextarea';
 import GuidanceBotBanner from './GuidanceBotBanner';
+import { usePromptForm } from '@/hooks/usePromptForm';
 
 interface PromptFormProps {
   onLessonGenerated: (lesson: any) => void;
   initialPrompt?: string;
+  setPrompt: (prompt: string) => void;
 }
 
-const PromptForm: React.FC<PromptFormProps> = ({ onLessonGenerated, initialPrompt = '' }) => {
-  const dispatch = useAppDispatch();
-
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedSubcategory, setSelectedSubcategory] = useState('');
-  const [prompt, setPrompt] = useState(initialPrompt);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showGuidanceBot, setShowGuidanceBot] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
-
-  useEffect(() => {
-    dispatch(fetchCategories());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (selectedCategory) {
-      dispatch(fetchSubcategories(selectedCategory));
-    }
-    setSelectedSubcategory('');
-  }, [dispatch, selectedCategory]);
-
-  useEffect(() => {
-    if (initialPrompt) {
-      setPrompt(initialPrompt);
-    }
-  }, [initialPrompt]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!isAuthenticated) {
-      setShowAuthModal(true);
-      return;
-    }
-
-    if (!selectedCategory || !selectedSubcategory || !prompt.trim()) {
-      toast({
-        title: "Incomplete form",
-        description: "Please select a category, subcategory, and enter your prompt",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const submission: PromptSubmission = {
-        categoryId: selectedCategory,
-        subCategoryId: selectedSubcategory,
-        prompt: prompt.trim(),
-      };
-
-      const response = await promptService.submitPrompt(submission);
-      onLessonGenerated(response);
-
-      toast({
-        title: "Lesson generated!",
-        description: "Your AI lesson is ready",
-      });
-
-      setPrompt('');
-    } catch (error) {
-      console.error('Failed to submit prompt:', error);
-      toast({
-        title: "Failed to generate lesson",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleGuidanceComplete = (guidanceData: any, finalPrompt: string) => {
-    setPrompt(finalPrompt);
-    setShowGuidanceBot(false);
-    toast({
-      title: "Prompt generated!",
-      description: "Your personalized prompt is ready. Review and submit when ready.",
-    });
-  };
-
-  const canUseGuidanceBot = selectedCategory && selectedSubcategory;
+const PromptForm: React.FC<PromptFormProps> = (props) => {
+  const {
+    selectedCategory,
+    selectedSubcategory,
+    prompt,
+    isSubmitting,
+    showGuidanceBot,
+    showAuthModal,
+    isAuthenticated,
+    handlePromptChange,
+    handleCategoryChange,
+    handleSubcategoryChange,
+    handleSubmit,
+    handleGuidanceComplete,
+    setShowGuidanceBot,
+    setShowAuthModal,
+  } = usePromptForm(props);
 
   if (showGuidanceBot) {
     return (
@@ -128,28 +57,25 @@ const PromptForm: React.FC<PromptFormProps> = ({ onLessonGenerated, initialPromp
             Select a topic and describe what you'd like to learn. Need help? Use the chat assistant!
           </CardDescription>
         </CardHeader>
-
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <CategorySelector value={selectedCategory} onChange={setSelectedCategory} />
+              <CategorySelector value={selectedCategory} onChange={handleCategoryChange} />
               <SubcategorySelector
                 categoryId={selectedCategory}
                 value={selectedSubcategory}
-                onChange={setSelectedSubcategory}
+                onChange={handleSubcategoryChange}
               />
             </div>
-
-            {canUseGuidanceBot && (
+            {selectedCategory && selectedSubcategory && (
               <GuidanceBotBanner onClick={() => setShowGuidanceBot(true)} />
             )}
-
             <PromptTextarea
               value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              initialPrompt={initialPrompt}
+              onChange={handlePromptChange}
+              initialPrompt={props.initialPrompt}
+              showAssistantBanner={false}
             />
-
             <Button
               type="submit"
               className="w-full"
@@ -164,7 +90,6 @@ const PromptForm: React.FC<PromptFormProps> = ({ onLessonGenerated, initialPromp
                 </>
               )}
             </Button>
-
             {!isAuthenticated && (
               <p className="text-sm text-gray-600 text-center">
                 You'll need to sign in to submit your prompt
@@ -173,7 +98,6 @@ const PromptForm: React.FC<PromptFormProps> = ({ onLessonGenerated, initialPromp
           </form>
         </CardContent>
       </Card>
-
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}

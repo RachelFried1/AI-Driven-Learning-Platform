@@ -8,22 +8,23 @@ beforeEach(async () => {
   await prisma.prompt.deleteMany();
   await prisma.user.deleteMany();
 
-  // Register and login user
-  await request(app)
+  // Register and login user with a unique email
+  const registerRes = await request(app)
     .post('/api/auth/register')
     .send({
       name: 'History User',
-      email: 'history@example.com',
+      email: 'history_unique@example.com',
       phone: '1234567893',
       password: 'password123'
     });
   const loginRes = await request(app)
     .post('/api/auth/login')
     .send({
-      email: 'history@example.com',
+      email: 'history_unique@example.com',
       password: 'password123'
     });
   userToken = loginRes.body.token;
+  console.log('Setup userToken:', userToken); // Debug output
 });
 
 afterAll(async () => {
@@ -35,7 +36,8 @@ describe('History Route', () => {
     const res = await request(app)
       .get('/api/prompts/my')
       .set('Authorization', `Bearer ${userToken}`);
+    console.log('History response:', res.body); // Debug output
     expect(res.status).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
+    expect(Array.isArray(res.body.items)).toBe(true); // Check items array
   });
 });

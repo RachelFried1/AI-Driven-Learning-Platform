@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import DashboardFilters from './DashboardFilters';
-import UserTable from './UserTable';
+import DashboardHeader from './DashboardHeader';
+import Filters from '@/components/common/Filters';
 import PromptTable from './PromptTable';
 import PromptDetailsModal from './PromptDetailsModal';
-import { Button } from '@/components/ui/button';
+import UserTable from './UserTable';
 import { PromptHistory } from '../../types';
 
 const Dashboard: React.FC = () => {
@@ -33,24 +33,11 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-4">
-        <Button
-          variant={!showUsers ? "default" : "outline"}
-          onClick={() => setShowUsers(false)}
-        >
-          Prompt History
-        </Button>
-        <Button
-          variant={showUsers ? "default" : "outline"}
-          onClick={() => setShowUsers(true)}
-        >
-          List All Users
-        </Button>
-      </div>
+      <DashboardHeader showUsers={showUsers} onShowUsers={setShowUsers} />
 
       {!showUsers && (
         <>
-          <DashboardFilters />
+          <Filters filterKey="admin" searchPlaceholder="Search prompts..." />
           <PromptTable
             onView={handleViewPrompt}
             formatDate={formatDate}
@@ -63,9 +50,7 @@ const Dashboard: React.FC = () => {
         </>
       )}
 
-      {showUsers && (
-        <UserTable />
-      )}
+      {showUsers && <UserTable />}
     </div>
   );
 };

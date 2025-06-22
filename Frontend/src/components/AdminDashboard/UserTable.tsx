@@ -1,49 +1,24 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableRow, TableHead, TableBody } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import UserTableRow from './UserTableRow';
 import PaginationControls from '../common/PaginationControls';
-import { useAppSelector, useAppDispatch } from '@/app/hooks';
-import { fetchUsers, setPage, setSearch } from '@/features/users/usersSlice';
+import { useUserTable } from '@/hooks/useUserTable';
 
 const UserTable: React.FC = () => {
-  const dispatch = useAppDispatch();
   const {
-    items: users,
+    users,
     search,
     isLoading,
     page,
     totalPages,
     total,
-  } = useAppSelector((state) => state.users);
-
-  useEffect(() => {
-    dispatch(fetchUsers({ page, limit: 10, search }));
-  }, [dispatch, page, search]);
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setSearch(e.target.value));
-    dispatch(setPage(1)); 
-  };
-
-  const handlePrev = () => {
-    if (page > 1) dispatch(setPage(page - 1));
-  };
-
-  const handleNext = () => {
-    if (page < totalPages) dispatch(setPage(page + 1));
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+    handleSearchChange,
+    handlePrev,
+    handleNext,
+    formatDate,
+  } = useUserTable();
 
   return (
     <Card>
@@ -82,14 +57,12 @@ const UserTable: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users
-                  .filter(user => user.role !== 'admin')
-                  .map((user) => (
-                    <UserTableRow key={user.id} user={user} formatDate={formatDate} />
-                  ))}
+                {users.map((user) => (
+                  <UserTableRow key={user.id} user={user} formatDate={formatDate} />
+                ))}
               </TableBody>
             </Table>
-            {users.filter(user => user.role !== 'admin').length === 0 && (
+            {users.length === 0 && (
               <div className="text-center py-8 text-gray-500">
                 No users found.
               </div>

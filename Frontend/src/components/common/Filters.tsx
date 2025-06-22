@@ -1,12 +1,15 @@
 import React, { useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { useAppSelector, useAppDispatch } from '@/app/hooks';
-import { setFilterField, FilterKey } from '@/features/filters/filtersSlice';
+import { setFilterField, FilterKey, FilterFields } from '@/features/filters/filtersSlice';
 import { fetchCategories, fetchSubcategories } from '@/features/categories/categoriesSlice';
 
-const filterKey: FilterKey = 'history';
+interface FiltersProps {
+  filterKey: FilterKey;
+  searchPlaceholder: string;
+}
 
-const HistoryFilters: React.FC = () => {
+const Filters: React.FC<FiltersProps> = ({ filterKey, searchPlaceholder }) => {
   const dispatch = useAppDispatch();
   const { searchTerm, categoryId, subCategoryId, date } = useAppSelector(
     (state) => state.filters[filterKey]
@@ -23,20 +26,10 @@ const HistoryFilters: React.FC = () => {
     }
   }, [dispatch, categoryId]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setFilterField({ key: filterKey, field: 'searchTerm', value: e.target.value }));
-  };
-
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    dispatch(setFilterField({ key: filterKey, field: 'categoryId', value: e.target.value }));
-  };
-
-  const handleSubCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    dispatch(setFilterField({ key: filterKey, field: 'subCategoryId', value: e.target.value }));
-  };
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setFilterField({ key: filterKey, field: 'date', value: e.target.value }));
+  const handleChange = (field: keyof FilterFields) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    dispatch(setFilterField({ key: filterKey, field, value: e.target.value }));
   };
 
   return (
@@ -44,9 +37,9 @@ const HistoryFilters: React.FC = () => {
       <div>
         <label className="block text-xs mb-1">Search</label>
         <Input
-          placeholder="Search history..."
+          placeholder={searchPlaceholder}
           value={searchTerm}
-          onChange={handleSearchChange}
+          onChange={handleChange('searchTerm')}
           className="max-w-xs"
         />
       </div>
@@ -54,7 +47,7 @@ const HistoryFilters: React.FC = () => {
         <label className="block text-xs mb-1">Category</label>
         <select
           value={categoryId}
-          onChange={handleCategoryChange}
+          onChange={handleChange('categoryId')}
           className="border rounded px-2 py-1"
         >
           <option value="">All</option>
@@ -67,7 +60,7 @@ const HistoryFilters: React.FC = () => {
         <label className="block text-xs mb-1">Subcategory</label>
         <select
           value={subCategoryId}
-          onChange={handleSubCategoryChange}
+          onChange={handleChange('subCategoryId')}
           className="border rounded px-2 py-1"
         >
           <option value="">All</option>
@@ -81,7 +74,7 @@ const HistoryFilters: React.FC = () => {
         <Input
           type="date"
           value={date}
-          onChange={handleDateChange}
+          onChange={handleChange('date')}
           className="max-w-xs"
         />
       </div>
@@ -89,4 +82,4 @@ const HistoryFilters: React.FC = () => {
   );
 };
 
-export default HistoryFilters;
+export default Filters;
