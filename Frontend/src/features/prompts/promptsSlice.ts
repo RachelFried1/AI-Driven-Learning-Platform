@@ -37,14 +37,15 @@ export const fetchPrompts = createAsyncThunk(
     { page: number; limit: number; search: string; categoryId: string; subCategoryId: string; date: string },
     thunkAPI
   ) => {
+    const tzOffset = new Date().getTimezoneOffset();
     const res = await promptService.getAllPrompts({
       page,
       limit,
       search,
       categoryId,
       subCategoryId,
-      startDate: date || undefined,
-      endDate: date || undefined,
+      date: date || undefined,
+      tzOffset,
     });
     return res;
   }
@@ -117,3 +118,4 @@ export const {
 } = promptsSlice.actions;
 
 export default promptsSlice.reducer;
+

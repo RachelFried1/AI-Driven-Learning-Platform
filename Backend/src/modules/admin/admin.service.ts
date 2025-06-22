@@ -3,7 +3,7 @@ import prisma from '../../shared/config/prisma';
 export async function listAllUsers() {
   return prisma.user.findMany({
     where: {
-      role: { not: 'admin' }, // Exclude admin users
+      role: { not: 'admin' }, 
     },
     select: {
       id: true,

@@ -3,7 +3,7 @@ export interface User {
   name: string;
   email: string;
   phone?: string;
-  role: 'admin' | 'user'; // Changed from isAdmin: boolean to role: 'admin' | 'user'
+  role: 'admin' | 'user';
 }
 
 export interface AuthState {
@@ -50,7 +50,6 @@ export interface PromptSubmission {
   includeFollowUp?: boolean;
 }
 
-// Modified to allow category/subcategory to be string or object with name
 export interface PromptHistory {
   id: string;
   prompt: string;
@@ -73,4 +72,13 @@ export interface GuidanceQuestion {
   type: 'select' | 'boolean' | 'text';
   options?: string[];
   required?: boolean;
+}
+
+export interface PromptHistoryFilterParams {
+  page: number;
+  limit: number;
+  search: string;
+  categoryId: string;
+  subCategoryId: string;
+  date?: string;
 }

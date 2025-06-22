@@ -10,7 +10,6 @@ const api = axios.create({
   },
 });
 
-// Add token to requests if available
 api.interceptors.request.use((config) => {
   const token = authService.getToken();
   if (token) {
@@ -19,12 +18,11 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle auth errors
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const originalRequest = error.config;
-    // Do NOT redirect if the request is for login or register
     if (
       error.response?.status === 401 &&
       !originalRequest.url.includes('/auth/login') &&

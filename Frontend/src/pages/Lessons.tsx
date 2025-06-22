@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { BookOpen, Clock, User, ArrowLeft } from 'lucide-react';
 import PromptForm from '../components/PromptSubmission/PromptForm/PromptForm';
 import { PromptHistory } from '../types';
+import MarkdownLesson from '@/components/GeneratedLesson/MarkdownLesson'; // <-- Import the markdown renderer
 
 const Lessons: React.FC = () => {
   const [currentLesson, setCurrentLesson] = useState<PromptHistory | null>(null);
@@ -111,22 +112,10 @@ const Lessons: React.FC = () => {
             </div>
 
             {/* Lesson Content */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">Your AI-Generated Lesson</CardTitle>
-                <CardDescription className="text-base">
-                  <strong>Your Request:</strong> {currentLesson.prompt}
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent>
-                <div className="prose prose-lg max-w-none">
-                  <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-                    {currentLesson.response}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <MarkdownLesson
+              prompt={currentLesson.prompt}
+              markdown={currentLesson.response}
+            />
 
             {/* Lesson Actions */}
             <Card>

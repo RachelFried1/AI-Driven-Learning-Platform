@@ -13,7 +13,6 @@ export async function createSubCategory(req: Request, res: Response): Promise<vo
     return;
   } catch (err: any) {
     if (err.code === 'P2003') {
-      // Prisma foreign key constraint failed
       res.status(400).json({ message: 'Category does not exist.' });
       return;
     }

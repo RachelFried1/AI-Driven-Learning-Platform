@@ -21,8 +21,6 @@ export const authService = {
     return { token, user };
   },
 
-  
-
   async refreshToken(): Promise<string> {
     const refreshToken = localStorage.getItem(REFRESH_KEY);
     if (!refreshToken) throw new Error('No refresh token');

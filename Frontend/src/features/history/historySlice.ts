@@ -1,3 +1,4 @@
+// filepath: src/features/history/historySlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { promptService } from '../../services/prompt';
 import { PromptHistory } from '../../types';
@@ -29,14 +30,15 @@ export const fetchHistory = createAsyncThunk(
     { page: number; limit: number; search: string; categoryId: string; subCategoryId: string; date: string },
     thunkAPI
   ) => {
+    const tzOffset = new Date().getTimezoneOffset();
     const res = await promptService.getUserHistory({
       page,
       limit,
       search,
       categoryId,
       subCategoryId,
-      startDate: date || undefined,
-      endDate: date || undefined,
+      date: date || undefined,
+      tzOffset,
     });
     return res;
   }

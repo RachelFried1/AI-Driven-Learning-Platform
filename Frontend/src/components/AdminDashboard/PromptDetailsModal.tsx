@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { PromptHistory } from '../../types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import ReactMarkdown from 'react-markdown';
 
 interface PromptDetailsModalProps {
   open: boolean;
@@ -15,9 +16,9 @@ const PromptDetailsModal: React.FC<PromptDetailsModalProps> = ({ open, onClose, 
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Prompt Details</DialogTitle>
+          <DialogTitle className="text-xl font-bold">Prompt Details</DialogTitle>
           <DialogDescription>
             Detailed information about this prompt and its AI-generated lesson.
           </DialogDescription>
@@ -28,13 +29,15 @@ const PromptDetailsModal: React.FC<PromptDetailsModalProps> = ({ open, onClose, 
         <div className="mb-2">
           <strong>Prompt:</strong> {prompt.prompt}
         </div>
-        <div className="mb-2">
+        <div className="mb-2 flex flex-wrap gap-2">
           <Badge variant="outline">{prompt.category?.name}</Badge>
-          <Badge variant="secondary" className="ml-2">{prompt.subCategory?.name}</Badge>
+          <Badge variant="secondary">{prompt.subCategory?.name}</Badge>
         </div>
         <div className="mb-4">
           <strong>Lesson:</strong>
-          <div className="whitespace-pre-wrap mt-1 text-gray-800">{prompt.response}</div>
+          <div className="prose prose-lg max-w-none mt-2 text-gray-900">
+            <ReactMarkdown>{prompt.response}</ReactMarkdown>
+          </div>
         </div>
         <DialogClose asChild>
           <Button variant="outline">Close</Button>

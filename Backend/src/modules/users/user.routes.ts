@@ -72,7 +72,6 @@ router.put('/me', requireAuth, asyncHandler(usersController.updateMyProfile));
 router.get(
   '/',
   requireAuth,
-  // Optionally: requireRole(Role.admin),
   asyncHandler(usersController.listUsers)
 );
 

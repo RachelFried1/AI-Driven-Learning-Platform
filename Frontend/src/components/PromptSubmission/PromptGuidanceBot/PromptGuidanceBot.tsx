@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bot, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Bot, ArrowLeft, ArrowRight, X } from 'lucide-react';
 import AgeGroupStep from './AgeGroupStep';
 import StageStep from './StageStep';
 import PreferencesStep from './PreferencesStep';
@@ -83,11 +83,9 @@ function getSteps(
 
 function generateFinalPrompt(
   guidanceData: GuidanceData,
-  categoryName: string,
-  subcategoryName: string
-) {
-  let prompt = `Create a lesson about ${subcategoryName} in ${categoryName}. `;
 
+) {
+let prompt = '';
   if (guidanceData.ageGroup) {
     const ageGroupMap: { [key: string]: string } = {
       elementary: 'elementary school students (6-11 years)',
@@ -114,7 +112,7 @@ function generateFinalPrompt(
     prompt += 'Start by reviewing the fundamental concepts. ';
   }
 
-  prompt += guidanceData.customPrompt + '. ';
+  prompt += 'Focus on ' + guidanceData.customPrompt + '. ';
 
   if (guidanceData.includeSummary) {
     prompt += 'Include a comprehensive summary at the end. ';
@@ -176,12 +174,22 @@ const PromptGuidanceBot: React.FC<PromptGuidanceBotProps> = ({
   };
 
   const handleComplete = () => {
-    const finalPrompt = generateFinalPrompt(guidanceData, categoryName, subcategoryName);
+    const finalPrompt = generateFinalPrompt(guidanceData,);
     onComplete(guidanceData, finalPrompt);
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-2xl mx-auto relative">
+      {/* X Close Button */}
+      <button
+        onClick={onCancel}
+        className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
+        aria-label="Close"
+        type="button"
+      >
+        <X className="h-6 w-6" />
+      </button>
+
       <CardHeader className="text-center">
         <div className="flex items-center justify-center mb-2">
           <Bot className="h-8 w-8 text-blue-600 mr-2" />
@@ -220,7 +228,7 @@ const PromptGuidanceBot: React.FC<PromptGuidanceBotProps> = ({
             {currentStep === 0 ? 'Cancel' : 'Back'}
           </Button>
           <Button onClick={handleNext} disabled={!canProceed()}>
-            {isLastStep ? 'Create Lesson' : 'Next'}
+            {isLastStep ? 'Create Prompt' : 'Next'}
             {!isLastStep && <ArrowRight className="h-4 w-4 ml-2" />}
           </Button>
         </div>

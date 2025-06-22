@@ -10,7 +10,7 @@ interface FilterFields {
 interface FiltersState {
   admin: FilterFields;
   user: FilterFields;
-  history: FilterFields; // <-- Added for HistoryList
+  history: FilterFields; 
 }
 
 const initialFields: FilterFields = {
@@ -23,7 +23,7 @@ const initialFields: FilterFields = {
 const initialState: FiltersState = {
   admin: { ...initialFields },
   user: { ...initialFields },
-  history: { ...initialFields }, // <-- Added for HistoryList
+  history: { ...initialFields },
 };
 
 type FilterKey = keyof FiltersState;
@@ -37,7 +37,6 @@ const filtersSlice = createSlice({
       action: PayloadAction<{ key: FilterKey; field: keyof FilterFields; value: string }>
     ) => {
       const { key, field, value } = action.payload;
-      // Reset subCategoryId if categoryId changes
       if (field === 'categoryId') {
         state[key].categoryId = value;
         state[key].subCategoryId = '';

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../../shared/config/prisma';
 import { AuthRequest } from '../../shared/middlewares/auth';
 
-// Get current user's profile
+
 export async function getMyProfile(req: AuthRequest, res: Response): Promise<void> {
   const userId = req.user?.userId;
   if (!userId) {
@@ -16,7 +16,7 @@ export async function getMyProfile(req: AuthRequest, res: Response): Promise<voi
   res.json(user);
 }
 
-// Update current user's profile
+
 export async function updateMyProfile(req: AuthRequest, res: Response): Promise<void> {
   const userId = req.user?.userId;
   const { name, phone } = req.body;
@@ -31,7 +31,6 @@ export async function updateMyProfile(req: AuthRequest, res: Response): Promise<
   res.json({ id: updated.id, name: updated.name, phone: updated.phone });
 }
 
-// List all users with optional filtering and pagination
 export async function listUsers(req: Request, res: Response): Promise<void> {
   const { search = '', page = 1, limit = 20 } = req.query;
   const skip = (Number(page) - 1) * Number(limit);
@@ -43,7 +42,6 @@ if (search) {
     { email: { contains: String(search), mode: 'insensitive' } },
   ];
 }
-// Add more filters here as needed
 
   const [users, total] = await Promise.all([
     prisma.user.findMany({

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '../hooks/useAuth';
+import { useAppSelector, useAppDispatch } from '@/app/hooks';
+import { logout } from '@/features/auth/authSlice';
 import { LogOut, User, BookOpen, History, Settings } from 'lucide-react';
 import {
   DropdownMenu,
@@ -11,11 +12,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const Navbar: React.FC = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
+    dispatch(logout());
     navigate('/');
   };
 
@@ -33,7 +35,6 @@ const Navbar: React.FC = () => {
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
               <>
-                {/* Only show Lessons and History if NOT admin */}
                 {user?.role !== 'admin' && (
                   <>
                     <Link to="/lessons">
@@ -49,7 +50,6 @@ const Navbar: React.FC = () => {
                     </Link>
                   </>
                 )}
-                {/* Only show Admin if admin */}
                 {user?.role === 'admin' && (
                   <Link to="/admin">
                     <Button variant="ghost" className="text-gray-700 hover:text-blue-600">
@@ -58,7 +58,6 @@ const Navbar: React.FC = () => {
                     </Button>
                   </Link>
                 )}
-                
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center space-x-2">

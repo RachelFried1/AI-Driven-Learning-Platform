@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAppSelector } from '@/app/hooks';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -8,10 +8,10 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = false }) => {
-  const { isAuthenticated, user, isLoading } = useAuth();
+  const { isAuthenticated, user, loading } = useAppSelector((state) => state.auth);
   const location = useLocation();
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -23,7 +23,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = f
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (adminOnly && user?.role !== 'admin') { // Changed from isAdmin to role === 'admin'
+  if (adminOnly && user?.role !== 'admin') {
     return <Navigate to="/lessons" replace />;
   }
 

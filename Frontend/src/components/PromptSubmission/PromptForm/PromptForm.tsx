@@ -4,11 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Sparkles, Send } from 'lucide-react';
 import { promptService } from '../../../services/prompt';
 import { PromptSubmission } from '../../../types';
-import { useAuth } from '../../../hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import PromptGuidanceBot from '../PromptGuidanceBot/PromptGuidanceBot';
 import AuthModal from '../../Auth/AuthModal';
-import { useAppDispatch } from '@/app/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { fetchCategories, fetchSubcategories } from '@/features/categories/categoriesSlice';
 import CategorySelector from './CategorySelector';
 import SubcategorySelector from './SubcategorySelector';
@@ -29,8 +28,7 @@ const PromptForm: React.FC<PromptFormProps> = ({ onLessonGenerated, initialPromp
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showGuidanceBot, setShowGuidanceBot] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(fetchCategories());
@@ -108,7 +106,6 @@ const PromptForm: React.FC<PromptFormProps> = ({ onLessonGenerated, initialPromp
   const canUseGuidanceBot = selectedCategory && selectedSubcategory;
 
   if (showGuidanceBot) {
-    // You may want to pass category/subcategory names here as before
     return (
       <PromptGuidanceBot
         categoryName={selectedCategory}

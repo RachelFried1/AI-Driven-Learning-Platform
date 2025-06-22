@@ -29,7 +29,6 @@ const RegisterButton: React.FC<RegisterButtonProps> = ({ formData, validate, onS
     if (registerThunk.fulfilled.match(resultAction)) {
       onSuccess();
     }
-    // Error is handled by Redux state
   };
 
   return (

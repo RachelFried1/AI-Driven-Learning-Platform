@@ -113,7 +113,7 @@ router.get(
   '/all',
   requireAuth,
   requireRole(Role.admin),
-  ...promptController.getAllPrompts // Spread if getAllPrompts is an array of middleware/handlers
+  ...promptController.getAllPrompts 
 );
 
 export default router;

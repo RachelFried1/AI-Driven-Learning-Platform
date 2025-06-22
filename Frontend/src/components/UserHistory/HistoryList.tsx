@@ -19,7 +19,6 @@ const HistoryList: React.FC = () => {
     limit,
   } = useAppSelector((state) => state.history);
 
-  // ✅ Call selectors at the top level
   const searchTerm = useAppSelector((state) => state.filters.history.searchTerm);
   const categoryId = useAppSelector((state) => state.filters.history.categoryId);
   const subCategoryId = useAppSelector((state) => state.filters.history.subCategoryId);

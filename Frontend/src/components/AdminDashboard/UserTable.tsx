@@ -24,7 +24,7 @@ const UserTable: React.FC = () => {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSearch(e.target.value));
-    dispatch(setPage(1)); // Reset to first page on search
+    dispatch(setPage(1)); 
   };
 
   const handlePrev = () => {

@@ -25,7 +25,7 @@ model User {
 
 model Category {
   id            Int           @id @default(autoincrement())
-  name          String        @db.VarChar(100)
+  name          String        @unique @db.VarChar(100)
   subCategories SubCategory[]
   prompts       Prompt[]
   createdAt     DateTime      @default(now())
@@ -41,7 +41,7 @@ model SubCategory {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  @@index([name, categoryId], name: "unique_subcategory_name_per_category")
+  @@unique([name, categoryId], name: "unique_subcategory_name_per_category")
 }
 
 model Prompt {

@@ -4,6 +4,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown, ChevronUp, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import ReactMarkdown from 'react-markdown';
 import { PromptHistory } from '../../types';
 
 interface HistoryItemCardProps {
@@ -51,10 +52,8 @@ const HistoryItemCard: React.FC<HistoryItemCardProps> = ({
         <CardContent className="pt-0">
           <div className="border-t pt-4">
             <h4 className="font-semibold mb-3 text-gray-900">AI Response:</h4>
-            <div className="prose prose-sm max-w-none">
-              <p className="whitespace-pre-wrap text-gray-700">
-                {item.response}
-              </p>
+            <div className="prose prose-sm max-w-none text-gray-700">
+              <ReactMarkdown>{item.response}</ReactMarkdown>
             </div>
           </div>
         </CardContent>

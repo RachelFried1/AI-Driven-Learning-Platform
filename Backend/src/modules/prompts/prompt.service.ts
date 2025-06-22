@@ -1,6 +1,6 @@
 import prisma from '../../shared/config/prisma';
 
-// Create a new prompt
+
 export async function createPrompt(
   userId: number,
   categoryId: number,
@@ -23,7 +23,7 @@ export async function createPrompt(
   });
 }
 
-// Get all prompts for a user with pagination and filtering
+
 export async function getUserPrompts(params: {
   userId: number;
   page?: number;
@@ -31,8 +31,8 @@ export async function getUserPrompts(params: {
   search?: string;
   categoryId?: number;
   subCategoryId?: number;
-  startDate?: string;
-  endDate?: string;
+  date?: string;
+  tzOffset?: number;
 }) {
   const {
     userId,
@@ -41,8 +41,8 @@ export async function getUserPrompts(params: {
     search,
     categoryId,
     subCategoryId,
-    startDate,
-    endDate,
+    date,
+    tzOffset = 0,
   } = params;
 
   const skip = (page - 1) * limit;
@@ -56,10 +56,14 @@ export async function getUserPrompts(params: {
       { response: { contains: search, mode: 'insensitive' } },
     ];
   }
-  if (startDate || endDate) {
-    where.createdAt = {};
-    if (startDate) where.createdAt.gte = new Date(startDate);
-    if (endDate) where.createdAt.lte = new Date(endDate);
+  if (date) {
+    const start = new Date(`${date}T00:00:00.000Z`);
+    start.setUTCMinutes(start.getUTCMinutes() - tzOffset);
+    const end = new Date(start);
+    end.setUTCDate(end.getUTCDate() + 1);
+    console.log('Frontend sent date:', date, 'tzOffset:', tzOffset);
+    console.log('Filtering createdAt between:', start.toISOString(), 'and', end.toISOString());
+    where.createdAt = { gte: start, lt: end };
   }
 
   const [items, totalItems] = await Promise.all([
@@ -81,7 +85,6 @@ export async function getUserPrompts(params: {
   return { items, page, totalItems, totalPages };
 }
 
-// Admin: Get all prompts with pagination, filtering, and user info
 export async function getAllPrompts(params: {
   page?: number;
   limit?: number;
@@ -89,8 +92,8 @@ export async function getAllPrompts(params: {
   categoryId?: number;
   subCategoryId?: number;
   search?: string;
-  startDate?: string;
-  endDate?: string;
+  date?: string;
+  tzOffset?: number;
 }) {
   const {
     page = 1,
@@ -99,8 +102,8 @@ export async function getAllPrompts(params: {
     categoryId,
     subCategoryId,
     search,
-    startDate,
-    endDate,
+    date,
+    tzOffset = 0,
   } = params;
 
   const skip = (page - 1) * limit;
@@ -116,10 +119,14 @@ export async function getAllPrompts(params: {
       { user: { name: { contains: search, mode: 'insensitive' } } },
     ];
   }
-  if (startDate || endDate) {
-    where.createdAt = {};
-    if (startDate) where.createdAt.gte = new Date(startDate);
-    if (endDate) where.createdAt.lte = new Date(endDate);
+  if (date) {
+    const start = new Date(`${date}T00:00:00.000Z`);
+    start.setUTCMinutes(start.getUTCMinutes() - tzOffset);
+    const end = new Date(start);
+    end.setUTCDate(end.getUTCDate() + 1);
+    console.log('Frontend sent date:', date, 'tzOffset:', tzOffset);
+    console.log('Filtering createdAt between:', start.toISOString(), 'and', end.toISOString());
+    where.createdAt = { gte: start, lt: end };
   }
 
   const [items, totalItems] = await Promise.all([

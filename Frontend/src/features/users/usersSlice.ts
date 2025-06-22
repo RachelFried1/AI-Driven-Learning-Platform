@@ -7,7 +7,6 @@ export interface User {
   email: string;
   role: string;
   createdAt: string;
-  // Add other fields as needed
 }
 
 interface UsersState {
@@ -32,7 +31,6 @@ const initialState: UsersState = {
   search: '',
 };
 
-// Async thunk for fetching users
 export const fetchUsers = createAsyncThunk(
   'users/fetchUsers',
   async ({ page, limit, search }: { page: number; limit: number; search: string }, thunkAPI) => {
@@ -54,7 +52,7 @@ const usersSlice = createSlice({
     setLimit(state, action: PayloadAction<number>) {
       state.limit = action.payload;
     },
-    // Add reducers for add/edit/delete if you want to update Redux manually
+
     resetUsersState(state) {
       state.items = [];
       state.total = 0;

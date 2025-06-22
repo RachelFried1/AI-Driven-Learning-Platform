@@ -4,7 +4,7 @@ import { AuthRequest } from '../../shared/middlewares/auth';
 import prisma from '../../shared/config/prisma';
 import { generateLesson } from '../../shared/services/openAIService';
 
-// Create a new prompt (with OpenAI integration)
+
 export async function createPrompt(req: AuthRequest, res: Response): Promise<void> {
   const userId = req.user?.userId;
   const { categoryId, subCategoryId, prompt } = req.body;
@@ -13,7 +13,7 @@ export async function createPrompt(req: AuthRequest, res: Response): Promise<voi
     return;
   }
 
-  // Fetch category and subcategory names from DB
+
   const category = await prisma.category.findUnique({ where: { id: Number(categoryId) } });
   const subCategory = await prisma.subCategory.findUnique({ where: { id: Number(subCategoryId) } });
 
@@ -22,10 +22,8 @@ export async function createPrompt(req: AuthRequest, res: Response): Promise<voi
     return;
   }
 
-  // Generate lesson using OpenAI
   const lesson = await generateLesson(prompt, category.name, subCategory.name);
 
-  // Save prompt and response to DB
   const newPrompt = await promptService.createPrompt(
     userId,
     Number(categoryId),
@@ -36,7 +34,6 @@ export async function createPrompt(req: AuthRequest, res: Response): Promise<voi
   res.status(201).json(newPrompt);
 }
 
-// Get all prompts for the authenticated user WITH pagination and filtering
 export async function getUserPrompts(req: AuthRequest, res: Response): Promise<void> {
   const userId = req.user?.userId;
   if (!userId) {
@@ -50,8 +47,8 @@ export async function getUserPrompts(req: AuthRequest, res: Response): Promise<v
     search,
     categoryId,
     subCategoryId,
-    startDate,
-    endDate,
+    date,
+    tzOffset,
   } = req.query;
 
   const result = await promptService.getUserPrompts({
@@ -61,14 +58,13 @@ export async function getUserPrompts(req: AuthRequest, res: Response): Promise<v
     search: search as string,
     categoryId: categoryId ? Number(categoryId) : undefined,
     subCategoryId: subCategoryId ? Number(subCategoryId) : undefined,
-    startDate: startDate as string | undefined,
-    endDate: endDate as string | undefined,
+    date: date as string | undefined,
+    tzOffset: tzOffset ? Number(tzOffset) : 0,
   });
 
   res.json(result);
 }
 
-// Admin-only: List all prompts with pagination and filtering, including user info
 export const getAllPrompts = [
   async (req: Request, res: Response) => {
     try {
@@ -79,8 +75,8 @@ export const getAllPrompts = [
         categoryId,
         subCategoryId,
         search,
-        startDate,
-        endDate,
+        date,
+        tzOffset,
       } = req.query;
 
       const result = await promptService.getAllPrompts({
@@ -90,8 +86,8 @@ export const getAllPrompts = [
         categoryId: categoryId ? Number(categoryId) : undefined,
         subCategoryId: subCategoryId ? Number(subCategoryId) : undefined,
         search: search as string,
-        startDate: startDate as string | undefined,
-        endDate: endDate as string | undefined,
+        date: date as string | undefined,
+        tzOffset: tzOffset ? Number(tzOffset) : 0,
       });
 
       res.json(result);

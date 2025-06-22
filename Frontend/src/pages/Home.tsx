@@ -1,11 +1,13 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, Bot, Users, Sparkles, ArrowRight, Brain, Target, Zap } from 'lucide-react';
+import { BookOpen, Bot, Sparkles, ArrowRight, Brain, Target, Zap } from 'lucide-react';
+import { useAppSelector } from '@/app/hooks';
 
 const Home: React.FC = () => {
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       {/* Hero Section */}
@@ -28,21 +30,23 @@ const Home: React.FC = () => {
               pace, and goals to create the perfect educational experience just for you.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/lessons">
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3">
-                  <Sparkles className="h-5 w-5 mr-2" />
-                  Start Learning
-                  <ArrowRight className="h-5 w-5 ml-2" />
-                </Button>
-              </Link>
-              
-              <Link to="/register">
-                <Button variant="outline" size="lg" className="text-lg px-8 py-3">
-                  Create Free Account
-                </Button>
-              </Link>
-            </div>
+            {!isAuthenticated && (
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link to="/lessons">
+                  <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3">
+                    <Sparkles className="h-5 w-5 mr-2" />
+                    Start Learning
+                    <ArrowRight className="h-5 w-5 ml-2" />
+                  </Button>
+                </Link>
+                
+                <Link to="/register">
+                  <Button variant="outline" size="lg" className="text-lg px-8 py-3">
+                    Create Free Account
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -165,20 +169,22 @@ const Home: React.FC = () => {
             Join thousands of learners who are already experiencing the power of AI-driven education
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/lessons">
-              <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
-                <BookOpen className="h-5 w-5 mr-2" />
-                Explore Lessons
-              </Button>
-            </Link>
-            
-            <Link to="/register">
-              <Button size="lg" variant="outline" className="text-lg px-8 py-3 border-white text-white hover:bg-white hover:text-blue-600">
-                Get Started Free
-              </Button>
-            </Link>
-          </div>
+          {!isAuthenticated && (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/lessons">
+                <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
+                  <BookOpen className="h-5 w-5 mr-2" />
+                  Explore Lessons
+                </Button>
+              </Link>
+              
+              <Link to="/register">
+                <Button size="lg" variant="outline" className="text-lg px-8 py-3 border-white text-white hover:bg-white hover:text-blue-600">
+                  Get Started Free
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </section>
     </div>

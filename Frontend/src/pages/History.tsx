@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BookOpen } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import HistoryList from '../components/UserHistory/HistoryList';
 
 const History: React.FC = () => {
@@ -17,12 +17,6 @@ const History: React.FC = () => {
               </Button>
             </Link>
             
-            <Link to="/lessons">
-              <Button className="flex items-center">
-                <BookOpen className="h-4 w-4 mr-2" />
-                Create New Lesson
-              </Button>
-            </Link>
           </div>
           
           <div className="text-center">
