@@ -10,5 +10,18 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+
+  testdb:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: ai_learning_platform_test
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - testdb_data:/var/lib/postgresql/data
+
 volumes:
   db_data:
+  testdb_data:

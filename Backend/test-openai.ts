@@ -3,7 +3,7 @@ import 'dotenv/config';
 import { generateLesson } from './src/shared/services/openAIService';
 
 async function main() {
-  const prompt = 'teach me about electricity';
+  const prompt = 'light switched on and off';
   const category = 'Science';
   const subCategory = 'electricity';
 
