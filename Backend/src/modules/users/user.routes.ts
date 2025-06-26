@@ -42,37 +42,5 @@ router.get('/me', requireAuth, asyncHandler(usersController.getMyProfile));
  */
 router.put('/me', requireAuth, asyncHandler(usersController.updateMyProfile));
 
-/**
- * @openapi
- * /api/users:
- *   get:
- *     summary: List all users (admin only)
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *         description: Search by name or email
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *         description: Items per page
- *     responses:
- *       200:
- *         description: Paginated list of users
- */
-router.get(
-  '/',
-  requireAuth,
-  asyncHandler(usersController.listUsers)
-);
 
 export default router;

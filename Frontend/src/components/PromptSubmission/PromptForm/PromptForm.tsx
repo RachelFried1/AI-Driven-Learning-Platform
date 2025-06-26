@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles, Send } from 'lucide-react';
@@ -9,6 +9,7 @@ import SubcategorySelector from './SubcategorySelector';
 import PromptTextarea from './PromptTextarea';
 import GuidanceBotBanner from './GuidanceBotBanner';
 import { usePromptForm } from '@/hooks/usePromptForm';
+import { useAppSelector } from '@/app/hooks';
 
 interface PromptFormProps {
   onLessonGenerated: (lesson: any) => void;
@@ -34,11 +35,23 @@ const PromptForm: React.FC<PromptFormProps> = (props) => {
     setShowAuthModal,
   } = usePromptForm(props);
 
+  const subcategoriesObj = useAppSelector((state) => state.categories.subcategories);
+
+  const subcategories = useMemo(
+    () => subcategoriesObj[selectedCategory] || [],
+    [subcategoriesObj, selectedCategory]
+  );
+
+  // Ensure both sides are strings for comparison
+  const selectedSubcategoryObj = subcategories.find(
+    (sub) => String(sub.id) === String(selectedSubcategory)
+  );
+
   if (showGuidanceBot) {
     return (
       <PromptGuidanceBot
         categoryName={selectedCategory}
-        subcategoryName={selectedSubcategory}
+        subcategoryName={selectedSubcategoryObj?.name || selectedSubcategory || ''}
         onComplete={handleGuidanceComplete}
         onCancel={() => setShowGuidanceBot(false)}
       />
@@ -64,7 +77,7 @@ const PromptForm: React.FC<PromptFormProps> = (props) => {
               <SubcategorySelector
                 categoryId={selectedCategory}
                 value={selectedSubcategory}
-                onChange={handleSubcategoryChange}
+                onChange={(value) => handleSubcategoryChange(String(value))} // Ensure string
               />
             </div>
             {selectedCategory && selectedSubcategory && (

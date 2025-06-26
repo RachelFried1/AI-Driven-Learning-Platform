@@ -11,7 +11,7 @@ export async function listAllUsers() {
       email: true,
       phone: true,
       role: true,
-      prompts: true, // You can count or include prompt details here
+      prompts: true,
     },
   });
 }

@@ -13,7 +13,7 @@ const GuidanceBotBanner: React.FC<GuidanceBotBannerProps> = ({ onClick }) => (
         <Bot className="h-5 w-5 text-blue-600 mr-2" />
         <div>
           <p className="font-medium text-blue-900">Need help crafting your prompt?</p>
-          <p className="text-sm text-blue-700">Our AI assistant can guide you through creating the perfect lesson request</p>
+          <p className="text-sm text-blue-700">Our assistant can guide you through creating the perfect lesson request</p>
         </div>
       </div>
       <Button

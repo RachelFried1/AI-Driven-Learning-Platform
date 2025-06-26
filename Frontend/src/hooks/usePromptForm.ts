@@ -48,13 +48,14 @@ export function usePromptForm({
     setPrompt(e.target.value);
   };
 
-  const handleCategoryChange = (value: string) => {
-    setSelectedCategory(value);
+  // Ensure IDs are always stored as strings
+  const handleCategoryChange = (value: string | number) => {
+    setSelectedCategory(String(value));
     setSelectedSubcategory('');
     localStorage.removeItem(SUBCATEGORY_KEY);
   };
 
-  const handleSubcategoryChange = (value: string) => setSelectedSubcategory(value);
+  const handleSubcategoryChange = (value: string | number) => setSelectedSubcategory(String(value));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
