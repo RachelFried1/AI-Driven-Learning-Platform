@@ -51,6 +51,26 @@ router.post('/register', validateRegisterInput, asyncHandler(authController.regi
  *       200:
  *         description: JWT token and user info
  */
-router.post('/login',validateLoginInput, asyncHandler(authController.login));
+router.post('/login', validateLoginInput, asyncHandler(authController.login));
+
+/**
+ * @openapi
+ * /api/auth/refresh:
+ *   post:
+ *     summary: Refresh access and refresh tokens
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: New access and refresh tokens
+ */
+router.post('/refresh', asyncHandler(authController.refreshToken));
 
 export default router;

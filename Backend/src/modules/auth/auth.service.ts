@@ -32,7 +32,7 @@ export function generateJWT(user: User): string {
   return jwt.sign(
     { userId: user.id, role: user.role },
     process.env.JWT_SECRET as string,
-    { expiresIn: '7d' }
+    { expiresIn: '15m' }
   );
 }
 
@@ -40,6 +40,35 @@ export function generateRefreshToken(user: User): string {
   return jwt.sign(
     { userId: user.id, role: user.role },
     process.env.JWT_REFRESH_SECRET as string,
-    { expiresIn: '30d' }
+    { expiresIn: '7d' }
   );
+}
+
+export async function refreshTokens(refreshToken: string) {
+  try {
+    const payload = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET as string
+    ) as { userId: number; role: Role };
+
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (!user) throw new Error('User not found');
+
+    const newAccessToken = generateJWT(user);
+    const newRefreshToken = generateRefreshToken(user);
+
+    return {
+      token: newAccessToken,
+      refreshToken: newRefreshToken,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      },
+    };
+  } catch (err) {
+    throw new Error('Invalid or expired refresh token');
+  }
 }

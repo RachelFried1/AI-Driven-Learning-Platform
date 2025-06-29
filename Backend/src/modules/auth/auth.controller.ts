@@ -51,8 +51,10 @@ export async function login(req: Request, res: Response): Promise<void> {
     return;
   }
   const token = authService.generateJWT(user);
+  const refreshToken = authService.generateRefreshToken(user);
   res.json({
     token,
+    refreshToken,
     user: {
       id: user.id,
       name: user.name,
@@ -62,4 +64,18 @@ export async function login(req: Request, res: Response): Promise<void> {
     },
   });
   return;
+}
+
+export async function refreshToken(req: Request, res: Response): Promise<void> {
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    res.status(400).json({ message: 'Refresh token required.' });
+    return;
+  }
+  try {
+    const tokens = await authService.refreshTokens(refreshToken);
+    res.status(200).json(tokens);
+  } catch (err: any) {
+    res.status(401).json({ message: err.message || 'Invalid refresh token' });
+  }
 }
